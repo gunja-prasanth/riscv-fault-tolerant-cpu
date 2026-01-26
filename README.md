@@ -62,19 +62,14 @@ The design follows these core principles:
 
 Instruction Memory
         |
-        v
 Instruction Decoder
         |
-        v
 Control Unit
         |
-        v
 Fault Detection Logic
         |
-        v
 Recovery FSM
         |
-        v
 Safe Control Output
 
 ---
