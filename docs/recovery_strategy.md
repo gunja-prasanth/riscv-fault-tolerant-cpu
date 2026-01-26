@@ -87,28 +87,24 @@ An FSM ensures:
          |
  Fault Detected
          |
-         v
     +---------+
     | FREEZE  |
     +----+----+
          |
     Start Recovery
          |
-         v
     +---------+
     | RECOVER |
     +----+----+
          |
  Recovery Successful
          |
-         v
     +---------+
     | RESUME  |
     +----+----+
          |
  Resume Complete
          |
-         v
     +---------+
     | NORMAL  |
     +---------+
