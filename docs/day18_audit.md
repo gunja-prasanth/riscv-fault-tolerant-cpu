@@ -40,6 +40,6 @@ The decision was made to **freeze the RTL** to avoid introducing regressions int
 
 ## 🧠 Key Takeaway
 
-This audit confirms that the project has maintained **high code quality from the early stages**, allowing the focus to shift confidently toward **formal verification and advanced features** in subsequent phases.
+This audit confirms that the project has maintained **high code quality from the early stages**, allowing the focus to shift confidently toward **formal verification and advanced features** in the subsequent phases.
 
 ----
