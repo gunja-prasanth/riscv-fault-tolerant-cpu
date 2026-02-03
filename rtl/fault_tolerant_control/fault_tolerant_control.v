@@ -20,7 +20,9 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 
-module fault_tolerant_control (
+module fault_tolerant_control #(
+    parameter ENABLE_FAULT_TOLERANCE = 1'b1
+)(
     input  wire clk,
     input  wire reset,
 
@@ -51,6 +53,13 @@ module fault_tolerant_control (
     wire resume_cpu;
 
     wire safe_mode;
+    
+        // ----------------------------------------
+    // Fault tolerance global enable
+    // ----------------------------------------
+    wire fault_en;
+    assign fault_en = ENABLE_FAULT_TOLERANCE;
+
 
     fault_classifier u_fault_classifier (
         .illegal_opcode (illegal_opcode),
@@ -62,8 +71,8 @@ module fault_tolerant_control (
     recovery_fsm u_recovery_fsm (
         .clk            (clk),
         .reset          (reset),
-        .minor_fault    (fault_type == 2'b01),
-        .critical_fault (fault_type == 2'b10),
+        .minor_fault    (fault_en & (fault_type == 2'b01)),
+        .critical_fault (fault_en & (fault_type == 2'b10)),
         .recovery_done  (resume_cpu),
 
         .freeze_cpu     (freeze_cpu),
@@ -71,10 +80,11 @@ module fault_tolerant_control (
         .resume_cpu     (resume_cpu)
     );
 
-    assign safe_mode = freeze_cpu | recover_cpu;
+    assign safe_mode = fault_en & (freeze_cpu | recover_cpu);
+
 
     recovery_action u_recovery_action (
-        .recovery_en (recover_cpu),
+        .recovery_en (fault_en & recover_cpu),
 
         .pc_current  (pc_current),
         .pc_saved    (pc_saved),
