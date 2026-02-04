@@ -111,13 +111,13 @@ The heart of the design is a **synchronous Moore FSM**:
 - Guarantees **no state corruption**
 
 ### 2️⃣ Recovery Action Logic
-- PC rollback to last known safe value
+- PC rollback to the last known safe value
 - NOP insertion to flush bad instructions
 - Retry enable for safe re-execution
 
 ### 3️⃣ Safe Control MUX
 - Final arbitration point
-- **Safety always has priority**
+- **Safety always has a priority**
 - Prevents unsafe control leakage
 
 ---
@@ -211,7 +211,7 @@ No external IPs required.
 ---
 
 > “This project implements an RTL-level fault-tolerant control subsystem for a RISC-V CPU.  
-> Instead of reacting blindly, it classifies faults, freezes unsafe execution, performs controlled recovery, and safely resumes operation.  
+> Instead of reacting blindly, it classifies the faults, freezes unsafe execution, performs controlled recovery, and safely resumes operation.  
 > The design is configurable, formally asserted, and fully verified through simulation and corner-case testing.”
 
 ---
