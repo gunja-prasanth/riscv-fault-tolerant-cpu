@@ -1,319 +1,226 @@
-# 🛡️ Configurable Fault-Tolerant RISC-V Control Subsystem  
-## 🔐 RTL-Level Error Detection & Recovery
+# 🛡️ Fault-Tolerant RISC-V Control Subsystem  
+### RTL-Level Error Detection, Recovery & Safety Control
 
 ---
 
-## 📌 1. Project Overview
+## 📌 Project Overview
 
-Modern processors operate under aggressive performance, power, and scaling constraints, which increase susceptibility to transient and permanent faults at the hardware level. While full fault-tolerant processors are expensive and complex, **control-path reliability** offers a high-impact, low-overhead solution for improving system robustness.
+Modern processors must not only be *functionally correct* but also *resilient to faults*.  
+This project implements a **fault-tolerant control subsystem** for a RISC-V–based CPU, focusing on:
 
-This project presents a **Configurable Fault-Tolerant RISC-V Control Subsystem** implemented at the **RTL level**, focusing on **error detection, classification, and recovery** within the processor control path. Instead of implementing a full RISC-V core, the design strategically targets the **control logic**, which is highly sensitive to faults and critical to correct execution.
+- **RTL-level fault detection**
+- **Safe control freeze**
+- **FSM-based recovery**
+- **Configurable fault tolerance**
+- **Formal safety guarantees**
 
-The system is designed, simulated, and verified entirely using **RTL design techniques**, making it suitable for academic research, internships, and VLSI interviews.
-
----
-
-## 🎯 2. Motivation
-
-### ❓ Why Fault Tolerance?
-
-As semiconductor technologies scale down:
-- Soft errors increase due to reduced noise margins
-- Control logic becomes vulnerable to bit flips and illegal states
-- Silent data corruption becomes harder to detect
-
-A single incorrect control signal (e.g., unintended memory write) can cause catastrophic system failure.
-
-### ❓ Why Control Subsystem?
-
-- Control logic governs **all datapath actions**
-- Small fault → large architectural consequence
-- Easier to protect compared to full datapath duplication
-- Highly suitable for RTL-based fault modeling
-
-This project demonstrates **engineering judgment** by applying fault tolerance where it matters most.
+The design is **modular, synthesizable, and simulation-proven**, making it suitable for:
+- 🎓 Academic research (IITH / IISc style)
+- 🧠 VLSI interviews
+- 🧪 Reliability-focused RTL design roles
 
 ---
 
-## 🧠 3. Design Philosophy
+## 🎯 Design Goals
 
-The design follows these core principles:
-
-1. **RTL-first approach**  
-   All fault modeling, detection, and recovery are implemented at the RTL level without relying on hardware-specific features.
-
-2. **Minimalism with impact**  
-   No full processor duplication. No heavyweight redundancy. Only essential logic.
-
-3. **Configurability**  
-   Fault tolerance can be enabled or disabled via parameters, allowing performance vs reliability trade-offs.
-
-4. **Deterministic recovery**  
-   No undefined behavior. Every detected fault leads to a defined and safe recovery action.
-
-5. **Verification-driven development**  
-   Every feature is validated using waveform-level simulation.
+✔ Detect control-level faults  
+✔ Prevent architectural state corruption  
+✔ Recover execution safely  
+✔ Resume normal operation deterministically  
+✔ Quantify and prove correctness  
 
 ---
 
-## 🧩 4. System Architecture
+## 🧩 High-Level Architecture
 
-### 🧱 High-Level Block Diagram
-
-Instruction Memory
-        |
-Instruction Decoder
-        |
-Control Unit
-        |
-Fault Detection Logic
-        |
-Recovery FSM
-        |
-Safe Control Output
-
----
-
-
-### 📐 Architectural Scope
-
-This project implements:
-- Instruction fetch (simplified)
-- Instruction decoding
-- Control signal generation
-- Fault detection and classification
-- Recovery FSM
-- Safe control signal masking
-
-This project does **NOT** implement:
-- Full datapath
-- Register file
-- ALU execution
-- Cache or pipeline stages
-
-This scoped design keeps the focus on **control-path reliability**.
-
----
-
-## 🧪 5. Module-Level Description
-
-### 5.1 Instruction Memory
-
-- ROM-based instruction storage
-- Indexed by Program Counter (PC)
-- Provides a deterministic instruction stream for testing
-
-Purpose:
-- Acts as a stable instruction source
-- Simplifies fault analysis by removing memory unpredictability
+```
+          +----------------------+
+          |  Fault Detector      |
+          |  (Rule-based RTL)    |
+          +----------+-----------+
+                     |
+                     v
+          +----------------------+
+          |  Fault Classifier    |
+          |  Minor / Critical   |
+          +----------+-----------+
+                     |
+                     v
+          +----------------------+
+          |  Recovery FSM        |
+          |  NORMAL → FREEZE →  |
+          |  RECOVER → RESUME   |
+          +----------+-----------+
+                     |
+                     v
+          +----------------------+
+          |  Recovery Actions    |
+          |  PC rollback        |
+          |  NOP insertion      |
+          |  Retry enable       |
+          +----------+-----------+
+                     |
+                     v
+          +----------------------+
+          |  Safe Control MUX    |
+          |  Safety > Normal    |
+          +----------------------+
+```
 
 ---
 
-### 5.2 Instruction Decoder
+## 🧠 Fault Model (RTL-Level)
 
-- Extracts opcode and instruction type
-- Generates decoded signals for control logic
+The system detects **control-path faults**, including:
 
-Outputs include:
-- Instruction category flags (e.g., arithmetic, memory, branch)
-- Invalid opcode detection
+- ❌ Illegal opcode patterns  
+- ❌ Invalid control signal combinations  
+- ❌ Stuck-at control signals  
 
-Design choice:
-- Decoder remains fault-unaware to preserve modularity
+Faults are **classified**, not blindly handled:
 
----
-
-### 5.3 Control Unit
-
-- Generates control signals based on decoded instruction
-- Signals include:
-  - Register write enable
-  - Memory read/write
-  - ALU operation selection
-
-This block represents the **primary fault target**, as incorrect control signals can corrupt architectural state.
+| Fault Type | Description              | Action Taken |
+|-----------|--------------------------|--------------|
+| Minor     | Recoverable inconsistency| Controlled recovery |
+| Critical  | Unsafe state risk        | Immediate freeze |
 
 ---
 
-### 5.4 Fault Detection Logic
+## 🔁 Recovery FSM
 
-The fault detection unit monitors control signals and decoder outputs to identify violations of predefined correctness rules.
+The heart of the design is a **synchronous Moore FSM**:
 
-Detected fault categories include:
-- Illegal control signal combinations
-- Stuck-at behavior (modeled)
-- Invalid or unsupported opcodes
+| State   | Purpose |
+|--------|---------|
+| NORMAL | Fault-free execution |
+| FREEZE | Stop PC & writes |
+| RECOVER | Roll back & correct |
+| RESUME | Controlled restart |
 
-The logic is purely combinational to ensure fast detection.
-
----
-
-### 5.5 Fault Classification
-
-Detected faults are classified into:
-- **Minor faults** – recoverable without halting execution
-- **Critical faults** – require immediate intervention
-
-This classification enables adaptive recovery strategies.
+✔ Clean reset  
+✔ Safe defaults  
+✔ No combinational loops  
 
 ---
 
-### 5.6 Recovery FSM
+## 🧯 Safety Mechanisms
 
-A centralized FSM manages system behavior after fault detection.
+### 1️⃣ Control Freeze Logic
+- PC write disabled
+- Register & memory writes masked
+- Guarantees **no state corruption**
 
-FSM states include:
-- NORMAL
-- FREEZE
-- RECOVERY
-- RESUME
+### 2️⃣ Recovery Action Logic
+- PC rollback to the last known safe value
+- NOP insertion to flush bad instructions
+- Retry enable for safe re-execution
 
-The FSM ensures:
-- Control signals are safely masked
-- No state corruption occurs
-- Execution resumes deterministically
-
----
-
-### 5.7 Safe Control Output
-
-This block acts as the final safety gate.
-
-- Normal control signals are passed when no fault exists
-- Safe values override normal signals during fault conditions
-
-This guarantees **fail-safe behavior** even if upstream logic misbehaves.
+### 3️⃣ Safe Control MUX
+- Final arbitration point
+- **Safety always has a priority**
+- Prevents unsafe control leakage
 
 ---
 
-## 🚨 6. Fault Model
+## ⚙️ Configurability (Day-20 Feature)
 
-### 6.1 Defined Fault Types
+Fault tolerance can be enabled or disabled via parameter:
 
-The project explicitly defines faults at the RTL level:
+```verilog
+parameter ENABLE_FAULT_TOLERANCE = 1'b1
+```
 
-1. Illegal control combinations  
-2. Stuck-at control signals  
-3. Invalid instruction opcodes  
-
-Each fault type is precisely documented to avoid ambiguity.
-
-### 6.2 Non-Goals
-
-The following are intentionally excluded:
-- Analog faults
-- Timing violations
-- Power-related faults
-- Fabrication defects
-
-This ensures the project remains focused and implementable.
-
----
-
-## 🔁 7. Recovery Strategy
-
-Recovery actions depend on fault classification:
-
-- Minor faults:
-  - Insert safe NOP
-  - Retry instruction
-- Critical faults:
-  - Freeze PC
-  - Mask all writes
-  - Resume only after safe state restoration
-
-The recovery logic prioritizes **data integrity over performance**.
-
----
-
-## ⚙️ 8. Configurability
-
-The subsystem supports compile-time configuration:
-
-- Fault detection enable/disable
-- Recovery depth control
-- Assertion enablement
+| Mode | Behavior |
+|----|---------|
+| `1` | Full fault detection + recovery |
+| `0` | Pure normal control path |
 
 This allows:
 - Performance comparison
-- Educational experimentation
-- Feature scalability
+- Area vs safety tradeoff analysis
+- Research-level experimentation
 
 ---
 
-## 🧪 9. Verification Methodology
+## 🧪 Verification Strategy
 
-Verification is performed using:
-- Directed testbenches
-- Fault injection techniques
-- Waveform inspection
-- Assertion-based checks
+✔ Unit-level testbenches for each block  
+✔ Fault injection tests  
+✔ Corner case testing:
+- Back-to-back faults
+- Reset during fault
+- Fault during recovery  
 
-Key verification goals:
-- Faults are always detected
-- No false positives during normal operation
-- Recovery actions prevent state corruption
+✔ System-level integration testbench  
 
 ---
 
-## 📊 10. Results and Observations
+## ✅ Formal Safety Assertions (SystemVerilog)
 
-Simulation results demonstrate:
-- Reliable detection of illegal control behavior
-- Deterministic recovery without crashes
-- Minimal overhead in fault-free execution
+Key guarantees are **formally asserted**:
 
-The design proves that **control-path fault tolerance is feasible and effective** at the RTL level.
+- ❗ No writes during fault
+- 🔁 Recovery eventually resumes
+- 🧱 No deadlock states
 
----
-
-## 🚧 11. Limitations and Future Work
-
-### Current Limitations
-- Single-cycle control model
-- Simplified instruction set
-- No datapath integration
-
-### Future Enhancements
-- Pipeline-aware recovery
-- Datapath fault monitoring
-- Formal verification
-- Integration with a full RISC-V core
+Assertions are simulation-checked and aligned with FSM behavior.
 
 ---
 
-## 🎓 12. Learning Outcomes
+## 📊 Results Summary
 
-This project strengthened skills in:
-- RTL design discipline
-- FSM-based recovery logic
-- Fault modeling
-- Verification thinking
-- Architectural trade-offs
-
----
-
-## ▶️ 13. How to Run
-
-1. Open Vivado
-2. Create a simulation project
-3. Add RTL files from `/rtl`
-4. Add testbench from `/tb`
-5. Run behavioral simulation
-6. Observe waveforms for fault detection and recovery
+- ✔ Faults detected within bounded cycles
+- ✔ No illegal writes during faults
+- ✔ Deterministic recovery
+- ✔ Minimal performance overhead
+- ✔ Clean synthesis & elaboration
 
 ---
 
-## 🏁 14. Conclusion
+## 📂 Repository Structure
 
-This project demonstrates that **robust fault tolerance does not require complex duplication or heavy hardware overhead**. By focusing on the control subsystem and applying RTL-level intelligence, significant reliability improvements can be achieved with minimal complexity.
+```
+rtl/
+ ├─ fault/                # Fault detection & classification
+ ├─ fsm/                  # Recovery FSM
+ ├─ control_freeze/       # Freeze logic
+ ├─ recovery_action/      # PC rollback & retry
+ ├─ safe_control_mux/     # Safety-priority mux
+ ├─ fault_tolerant_control/ # Integrated top
+ └─ top/                  # Base control subsystem
 
-The design reflects real-world VLSI engineering practices and is suitable for academic evaluation, internships, and interviews.
+tb/
+ ├─ unit testbenches
+ ├─ fault injection tests
+ ├─ corner case tests
+ └─ system-level TB
+```
 
 ---
 
-## 👤 15. Author
+## ▶️ How to Run (Vivado)
 
-**Gunja Prasanth**  
-B.Tech – Electronics / VLSI  
-RTL Design & Verification  
+1. Open **Vivado 2018.2**
+2. Load project
+3. Set testbench as simulation top
+4. Run **Behavioral Simulation**
+5. Observe waveform proofs
+
+No external IPs required.
+
+---
+
+> “This project implements an RTL-level fault-tolerant control subsystem for a RISC-V CPU.  
+> Instead of reacting blindly, it classifies the faults, freezes unsafe execution, performs controlled recovery, and safely resumes operation.  
+> The design is configurable, formally asserted, and fully verified through simulation and corner-case testing.”
+
+---
+
+## 🏁 Status
+
+✔ Design complete  
+✔ Verified  
+✔ Documented  
+✔ Research-ready  
+
+---
