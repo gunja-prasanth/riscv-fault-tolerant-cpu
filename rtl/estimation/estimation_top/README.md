@@ -19,7 +19,6 @@ No functional logic is altered in this stage.
 
 ---
 
-
 The `estimation/` directory acts as a **logical layer** for all future:
 - Observation hooks
 - Monitors
@@ -90,6 +89,9 @@ This architecture enables future additions such as:
 ---
 
 
+---
+
 ## 🏁 Summary
 Day 25 establishes the **foundation for fault-awareness analytics** by clearly defining *what to observe* and *why it matters*.  
 This sets the stage for adding monitors, counters, and intelligent estimation logic in upcoming tasks.
+

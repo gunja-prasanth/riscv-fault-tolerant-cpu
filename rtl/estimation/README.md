@@ -1,31 +1,44 @@
-# 🔍 Estimation Layer (Phase-2 Extension)
+## 🟢 Day-26: Activity Monitor RTL
 
-➤ This module adds a **passive, activity-aware estimation layer** to the  
-**fault-tolerant RISC-V control subsystem**.
+### Overview
+This phase introduces a **passive activity monitoring block** that observes
+control-level behavior of the fault-tolerant RISC-V subsystem without affecting
+functional execution.
 
----
-
-## 🎯 Purpose
-✔ Observe **control-level activity**  
-✔ Estimate **relative power & performance cost**  
-✔ Avoid **gate-level simulation**
+The activity monitor is designed to be **non-intrusive**, synthesizable, and
+reset-safe, enabling early-stage analysis of control behavior.
 
 ---
 
-## ⚙️ What It Does
-✔ Counts **FSM state transitions**  
-✔ Tracks **control signal toggles**  
-✔ Measures **recovery-induced overhead**
+### What Is Implemented
+✔ FSM state transition counter  
+✔ PC write toggle counter  
+✔ Recovery-active cycle counter  
+
+All counters operate purely in observation mode and do **not** feed back into
+the control path.
 
 ---
 
-## 🚫 What It Does NOT Do
-✖ Does **NOT** control execution  
-✖ Does **NOT** gate signals  
-✖ Does **NOT** affect correctness
+### Design Characteristics
+- **Passive**: No outputs drive system behavior  
+- **Reset-safe**: All counters reset cleanly  
+- **Synthesizable**: No simulation-only constructs  
+- **Non-intrusive**: Functional waveform remains unchanged  
 
 ---
 
-## 📚 Research Inspiration
-➤ This layer is inspired by research on **early-stage design-space exploration**  
-➤ and **RTL-based power & performance estimation techniques**.
+### Verification Strategy
+- Integrated into the existing top-level design
+- Validated through system-level behavioral simulation
+- Identical waveform behavior before and after integration confirms
+  non-intrusive operation
+
+No dedicated testbench is added at this stage, as the activity monitor is
+verified indirectly through successful system execution.
+
+---
+
+### Key Takeaway
+This step establishes the foundation for **activity-aware estimation** by
+capturing control-level events while preserving functional correctness.
