@@ -1,0 +1,47 @@
+`timescale 1ns / 1ps
+//////////////////////////////////////////////////////////////////////////////////
+// Company: 
+// Engineer: 
+// 
+// Create Date: 30.01.2026 18:13:00
+// Design Name: 
+// Module Name: safe_control_mux
+// Project Name: 
+// Target Devices: 
+// Tool Versions: 
+// Description: 
+// 
+// Dependencies: 
+// 
+// Revision:
+// Revision 0.01 - File Created
+// Additional Comments:
+// 
+//////////////////////////////////////////////////////////////////////////////////
+
+
+module safe_control_mux (
+    input  wire safe_mode,
+
+    // Normal control signals
+    input  wire pc_write_normal,
+    input  wire reg_write_normal,
+    input  wire mem_write_normal,
+
+    // Safe control signals
+    input  wire pc_write_safe,
+    input  wire reg_write_safe,
+    input  wire mem_write_safe,
+
+    // Final control outputs
+    output wire pc_write_out,
+    output wire reg_write_out,
+    output wire mem_write_out
+);
+
+    // Priority to safety
+    assign pc_write_out  = safe_mode ? pc_write_safe  : pc_write_normal;
+    assign reg_write_out = safe_mode ? reg_write_safe : reg_write_normal;
+    assign mem_write_out = safe_mode ? mem_write_safe : mem_write_normal;
+
+endmodule
