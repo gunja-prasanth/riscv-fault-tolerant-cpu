@@ -45,6 +45,12 @@ module fault_tolerant_control #(
     output wire        insert_nop,
     output wire        retry_en
 );
+// ----------------------------------------------------
+// Estimation layer outputs (observation only)
+// ----------------------------------------------------
+wire [63:0] est_power;
+wire [7:0]  est_perf_overhead;
+
 
     wire [1:0] fault_type;
 
@@ -108,6 +114,23 @@ module fault_tolerant_control #(
         .pc_write_out     (pc_write_out),
         .reg_write_out    (reg_write_out),
         .mem_write_out    (mem_write_out)
+    );
+    
+   // ----------------------------------------------------
+    // Estimation layer (PASSIVE OBSERVATION ONLY)
+    // ----------------------------------------------------
+    estimation_top u_estimation_top (
+        .clk(clk),
+        .reset(reset),
+    
+        // tapped control signals (READ ONLY)
+        .fsm_state(fsm_state),
+        .pc_write(pc_write_out),
+        .recovery_active(recovery_active),
+    
+        // estimation outputs (NOT USED anywhere)
+        .power_estimate(est_power),
+        .recovery_overhead_pct(est_perf_overhead)
     );
 
 endmodule
