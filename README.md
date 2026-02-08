@@ -223,4 +223,109 @@ No external IPs required.
 ✔ Documented  
 ✔ Research-ready  
 
+
 ---
+
+
+# 🔬 Phase-2 Extension: Activity-Aware Power & Performance Estimation
+
+---
+
+## 📌 Overview
+This project is extended with a **passive, activity-aware estimation layer**
+that enables **early-stage power and performance analysis** at the RTL
+**control-logic level**.
+
+✔ The estimation logic **observes** control behavior  
+✔ It does **NOT** affect functional execution  
+✔ It does **NOT** alter timing or fault-tolerance guarantees  
+
+---
+
+## 🎯 Motivation
+Early power and performance evaluation is essential for architectural
+trade-off analysis, particularly in **fault-tolerant systems** where
+recovery mechanisms introduce overhead.
+
+⚠️ Gate-level simulation and post-implementation power analysis are:
+- expensive
+- technology-dependent
+- unsuitable for early design decisions
+
+This extension focuses on:
+✔ **RTL-level estimation**  
+✔ **Technology-agnostic modeling**  
+✔ **Fast, proxy-based analysis**
+
+---
+
+## 🧩 Estimation Architecture
+The estimation layer is integrated **passively** within the fault-tolerant
+control subsystem and consists of the following components:
+
+### 🔹 Activity Monitor
+✔ Counts FSM state transitions  
+✔ Tracks PC write toggles  
+✔ Measures recovery-active cycles  
+
+### 🔹 Power Estimator
+✔ Maps activity counts to a **relative power proxy**  
+✔ Uses configurable, unit-less weights  
+✔ Avoids voltage, frequency, and process assumptions  
+
+### 🔹 Performance Estimator
+✔ Measures recovery-induced execution overhead  
+✔ Computes integer-based overhead percentages  
+✔ Operates without timing or clock-rate assumptions  
+
+🔒 **All estimation outputs are observational only** and do **NOT** influence
+control or datapath behavior.
+
+---
+
+## 📚 Research Alignment
+This extension is inspired by and aligned with prior research on
+early-stage estimation and design-space exploration:
+
+### 🔸 Rajesh Kedia et al.
+✔ Early evaluation of performance and energy trade-offs  
+✔ Architectural-level analysis without exhaustive simulation  
+✔ Motivation for lightweight, proxy-based estimation  
+
+### 🔸 Amit Acharyya et al.
+✔ RTL-level activity propagation for power estimation  
+✔ Avoidance of gate-level simulation  
+✔ Emphasis on fast, inductive estimation methodologies  
+
+📌 The implementation reflects these ideas at the **control-logic level**
+rather than datapath or circuit level.
+
+---
+
+## 🔍 Verification Strategy
+✔ Incremental integration with **waveform regression checks**  
+✔ Identical simulation behavior before and after integration  
+✔ Elaborated design inspection confirms **non-intrusive operation**  
+
+🛡 This ensures the estimation layer does **NOT** affect:
+- functional correctness
+- control flow
+- timing behavior
+
+---
+
+## ⚠️ Limitations
+❗ The estimated metrics represent **relative trends**, not absolute power  
+❗ No technology-specific parameters (voltage, frequency, process) modeled  
+❗ Does not replace gate-level or silicon measurements  
+
+These limitations are **intentional** to preserve:
+✔ early-stage applicability  
+✔ architectural independence  
+
+---
+
+## 🔑 Key Takeaway
+> **Fault-tolerant control behavior can be quantified at RTL for power and
+performance trends without compromising correctness or requiring costly
+post-implementation analysis.**
