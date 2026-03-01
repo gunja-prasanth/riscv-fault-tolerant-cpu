@@ -232,7 +232,7 @@ No external IPs required.
 ---
 
 ## 📌 Overview
-This project is extended with a **passive, activity-aware estimation layer**
+This project is the extended with a **passive, activity-aware estimation layer**
 that enables **early-stage power and performance analysis** at the RTL
 **control-logic level**.
 
