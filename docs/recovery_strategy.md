@@ -12,8 +12,6 @@ This document defines:
 - Transition conditions
 - System-level behavior during faults
 
-No RTL is written on this day.
-
 ---
 
 ## 🧠 Why an FSM is Required
